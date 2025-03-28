@@ -71,7 +71,20 @@ class HistoryPage extends StatelessWidget {
         contentPadding: const EdgeInsets.all(16),
         leading: Icon(Icons.analytics, color: Colors.blue.shade900),
         title: Text(DateFormat('MMM dd, yyyy - HH:mm').format(item.date)),
-        subtitle: Text(item.tags.join(', ')),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(item.name ?? 'Unnamed Analysis',
+                style:
+                    const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 2),
+            Text(item.summary ?? 'No summary available',
+                style: const TextStyle(
+                  fontSize: 12,
+                )),
+          ],
+        ),
         trailing: IconButton(
           icon: const Icon(Icons.delete, color: Colors.red),
           onPressed: () => _confirmDelete(context, item.id),

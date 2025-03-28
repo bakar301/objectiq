@@ -16,6 +16,7 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _LoginScreenState createState() => _LoginScreenState();
 }
 
@@ -32,7 +33,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -141,6 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   password: _passwordController.text);
               if (res.user != null) {
                 log("User login successfully");
+                // ignore: use_build_context_synchronously
                 Navigator.pushReplacement(context,
                     MaterialPageRoute(builder: (context) => HomePage()));
               }

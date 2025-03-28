@@ -13,6 +13,7 @@ import 'globals.dart';
 const supabaseUrl = "https://jegrusfxgdlkaxangwvo.supabase.co";
 const supabaseAnonKey =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZ3J1c2Z4Z2Rsa2F4YW5nd3ZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI5MTk0OTYsImV4cCI6MjA1ODQ5NTQ5Nn0.M1GPFvhqmShnjj18HQqhvkJmAdB8FXQCTwbwtXuW61Y";
+
 Future<void> main() async {
   // Ensure that plugin services are initialized so that `availableCameras()` can be called before `runApp()` is called.
 

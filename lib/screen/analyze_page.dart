@@ -73,8 +73,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
     }
   }
 
-  /// Updated _pickImage: if source is camera, request permission and open camera.
-  /// On web, pass webOptions to try opening the camera.
+  /// Pick an image from camera/gallery.
   Future<void> _pickImage([ImageSource? source]) async {
     source ??= ImageSource.gallery;
     if (source == ImageSource.camera) {
@@ -142,19 +141,17 @@ class _AnalyzePageState extends State<AnalyzePage> {
       _isAnalyzing = true;
     });
 
+    Map<String, dynamic> result;
+
     try {
       // Adjust the endpoint URL based on your environment.
-      // For local development: http://127.0.0.1:8000/api/v1/upload-image/
-      // For Android Emulator: http://10.0.2.2:8000/api/v1/upload-image/
-      // For iOS Simulator: http://localhost:8000/api/v1/upload-image/
-      // For real devices on the same network: use your computer’s local network IP.
       final uri = Uri.parse('http://192.168.10.21:8000/api/v1/upload-image/');
 
       // Read the file bytes and encode them to Base64.
       final bytes = await _selectedImage!.readAsBytes();
       final base64Image = base64Encode(bytes);
 
-      // Create a simple POST request with a JSON body.
+      // POST request with JSON body.
       final response = await http.post(
         uri,
         headers: {"Content-Type": "application/json"},
@@ -162,34 +159,67 @@ class _AnalyzePageState extends State<AnalyzePage> {
       );
 
       if (response.statusCode == 200) {
-        // Parse the JSON response.
-        final result = jsonDecode(response.body);
-        setState(() {
-          _analysisResult = result;
-        });
-
-        final newItem = HistoryItem(
-          id: DateTime.now().toString(),
-          imagePath: _selectedImage!.path,
-          date: DateTime.now(),
-          tags: (result['tags'] as List<dynamic>?)?.cast<String>() ?? [],
-        );
-
-        Provider.of<HistoryProvider>(context, listen: false).addItem(newItem);
+        result = jsonDecode(response.body);
       } else {
+        // Use dummy data for testing.
+        result = {
+          'name': 'Dummy Analysis',
+          'color': 'color name', // example hex color
+          'context': 'dummy context',
+          'summary': 'dummy summary',
+          'food': 'dummy food',
+          'calories': 'dummy calories',
+          'recipe': 'dummy recipe',
+          'error': 'No error',
+        };
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Analysis failed: ${response.statusCode}")),
+          const SnackBar(
+              content: Text("Server is busy. Dummy data used for testing.")),
         );
       }
     } catch (e) {
+      // In case of network error, use dummy data.
+      final resultDummy = {
+        'name': 'Dummy Analysis',
+        'color': '#FF5733',
+        'context': 'dummy context',
+        'summary': 'dummy summary',
+        'food': 'dummy food',
+        'calories': 'dummy calories',
+        'recipe': 'dummy recipe',
+        'error': 'No error',
+      };
+      result = resultDummy;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error during analysis: $e")),
+        const SnackBar(
+            content: Text("Server is busy. Dummy data used for testing.")),
       );
     }
 
     setState(() {
+      _analysisResult = result;
+    });
+
+    // Create a HistoryItem with the new name and color fields.
+    final newItem = HistoryItem(
+      id: DateTime.now().toString(),
+      imagePath: _selectedImage!.path,
+      date: DateTime.now(),
+      context: result['context'],
+      summary: result['summary'],
+      food: result['food'],
+      calories: result['calories'],
+      recipe: result['recipe'],
+      error: result['error'],
+      name: result['name'],
+      color: result['color'],
+    );
+
+    Provider.of<HistoryProvider>(context, listen: false).addItem(newItem);
+
+    setState(() {
       _isAnalyzing = false;
-      // Clear the selected image regardless of success.
+      // Clear the selected image.
       _selectedImage = null;
     });
 
@@ -208,6 +238,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
         pageFormat: PdfPageFormat.a4,
         build: (pw.Context context) {
           return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Header(
                 level: 0,
@@ -216,17 +247,29 @@ class _AnalyzePageState extends State<AnalyzePage> {
                         fontSize: 24, fontWeight: pw.FontWeight.bold)),
               ),
               pw.SizedBox(height: 30),
-              pw.Text('Analysis Results:',
-                  style: pw.TextStyle(
-                      fontSize: 18, fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 15),
-              ..._analysisResult!['tags'].map((tag) => pw.Padding(
-                    padding: const pw.EdgeInsets.only(bottom: 8),
-                    child: pw.Text('• $tag'),
-                  )),
-              pw.SizedBox(height: 20),
-              pw.Text('Confidence: ${_analysisResult!['confidence']}',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.Text('Name: ${_analysisResult!['name'] ?? "N/A"}',
+                  style: pw.TextStyle(fontSize: 16)),
+              pw.SizedBox(height: 10),
+              pw.Text('Color: ${_analysisResult!['color'] ?? "N/A"}',
+                  style: pw.TextStyle(fontSize: 16)),
+              pw.SizedBox(height: 10),
+              pw.Text('Context: ${_analysisResult!['context'] ?? "N/A"}',
+                  style: pw.TextStyle(fontSize: 16)),
+              pw.SizedBox(height: 10),
+              pw.Text('Summary: ${_analysisResult!['summary'] ?? "N/A"}',
+                  style: pw.TextStyle(fontSize: 16)),
+              pw.SizedBox(height: 10),
+              pw.Text('Food: ${_analysisResult!['food'] ?? "N/A"}',
+                  style: pw.TextStyle(fontSize: 16)),
+              pw.SizedBox(height: 10),
+              pw.Text('Calories: ${_analysisResult!['calories'] ?? "N/A"}',
+                  style: pw.TextStyle(fontSize: 16)),
+              pw.SizedBox(height: 10),
+              pw.Text('Recipe: ${_analysisResult!['recipe'] ?? "N/A"}',
+                  style: pw.TextStyle(fontSize: 16)),
+              pw.SizedBox(height: 10),
+              pw.Text('Error: ${_analysisResult!['error'] ?? "None"}',
+                  style: pw.TextStyle(fontSize: 16)),
             ],
           );
         },
@@ -465,6 +508,17 @@ class AnalysisResultDialog extends StatelessWidget {
     final backgroundColor = isDark ? Colors.grey[850] : Colors.white;
     final buttonColor = Colors.blue.shade900;
 
+    // Parse the color value from the results, if provided.
+    Color? resultColor;
+    if (results['color'] != null) {
+      try {
+        final hexCode = results['color'].toString().replaceAll('#', '');
+        resultColor = Color(int.parse('0xff$hexCode'));
+      } catch (e) {
+        resultColor = Colors.transparent;
+      }
+    }
+
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.all(20),
@@ -514,57 +568,72 @@ class AnalysisResultDialog extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-                ...results['tags'].map<Widget>((tag) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Row(
-                      children: [
-                        Icon(Icons.check_circle_rounded,
-                            color: Colors.green.shade700, size: 24),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: Text(
-                            tag,
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: textColor,
-                            ),
-                          ),
-                        ),
-                      ],
+                // New fields: Name and Color
+                Text('Name: ${results['name'] ?? "N/A"}',
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: textColor)),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Text('Color: ',
+                        style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: textColor)),
+                    Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: resultColor ?? Colors.transparent,
+                        border: Border.all(color: textColor),
+                      ),
                     ),
-                  );
-                }).toList(),
-                const SizedBox(height: 25),
-                Container(
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    color: backgroundColor,
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.all(
-                      color: isDark ? Colors.grey[600]! : Colors.blue.shade100,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.auto_awesome_rounded,
-                          color: textColor, size: 28),
-                      const SizedBox(width: 15),
-                      Text('Confidence Level',
-                          style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: textColor)),
-                      const Spacer(),
-                      Text(results['confidence'],
-                          style: GoogleFonts.poppins(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.green.shade700)),
-                    ],
-                  ),
+                    const SizedBox(width: 10),
+                    Text(results['color'] ?? "N/A",
+                        style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: textColor)),
+                  ],
                 ),
+                const SizedBox(height: 10),
+                Text('Context: ${results['context'] ?? "N/A"}',
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: textColor)),
+                const SizedBox(height: 10),
+                Text('Summary: ${results['summary'] ?? "N/A"}',
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: textColor)),
+                const SizedBox(height: 10),
+                Text('Food: ${results['food'] ?? "N/A"}',
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: textColor)),
+                const SizedBox(height: 10),
+                Text('Calories: ${results['calories'] ?? "N/A"}',
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: textColor)),
+                const SizedBox(height: 10),
+                Text('Recipe: ${results['recipe'] ?? "N/A"}',
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: textColor)),
+                const SizedBox(height: 10),
+                Text('Error: ${results['error'] ?? "None"}',
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: textColor)),
                 const SizedBox(height: 25),
                 ElevatedButton.icon(
                   onPressed: onDownload,

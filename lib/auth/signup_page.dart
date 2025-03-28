@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
   @override
+  // ignore: library_private_types_in_public_api
   _SignupScreenState createState() => _SignupScreenState();
 }
 
@@ -22,7 +23,6 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _obscureText = true;
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     _emailController.dispose();
     _passwordController.dispose();
