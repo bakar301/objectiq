@@ -73,11 +73,25 @@ class _AnalyzePageState extends State<AnalyzePage> {
     }
   }
 
-  /// Pick an image from camera/gallery.
+  /// Updated _pickImage: if source is camera, request permission and open camera.
+  /// On web, pass webOptions to try opening the camera.
   Future<void> _pickImage([ImageSource? source]) async {
     source ??= ImageSource.gallery;
     if (source == ImageSource.camera) {
-      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      if (kIsWeb) {
+        try {
+          // Try to request camera access.
+          await html.window.navigator.mediaDevices!
+              .getUserMedia({'video': true});
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content:
+                    Text('Camera not available or permission denied on web.')),
+          );
+          return; // Exit if camera access fails.
+        }
+      } else if (Platform.isAndroid || Platform.isIOS) {
         var cameraStatus = await Permission.camera.status;
         if (!cameraStatus.isGranted) {
           cameraStatus = await Permission.camera.request();
@@ -92,13 +106,12 @@ class _AnalyzePageState extends State<AnalyzePage> {
     }
     final XFile? image = await _picker.pickImage(
       source: source,
-      preferredCameraDevice:
-          source == ImageSource.camera ? CameraDevice.rear : CameraDevice.rear,
+      preferredCameraDevice: CameraDevice.rear,
     );
     if (image != null) {
       setState(() {
         _selectedImage = File(image.path);
-        _analysisResult = null; // clear previous analysis
+        _analysisResult = null; // Clear previous analysis.
       });
     }
   }
@@ -145,13 +158,17 @@ class _AnalyzePageState extends State<AnalyzePage> {
 
     try {
       // Adjust the endpoint URL based on your environment.
-      final uri = Uri.parse('http://192.168.10.21:8000/api/v1/upload-image/');
+      // For local development: http://127.0.0.1:8000/api/v1/upload-image/
+      // For Android Emulator: http://10.0.2.2:8000/api/v1/upload-image/
+      // For iOS Simulator: http://localhost:8000/api/v1/upload-image/
+      // For real devices on the same network: use your computer’s local network IP.
+      final uri = Uri.parse('http://127.0.0.1:8000/api/v1/upload-image/');
 
       // Read the file bytes and encode them to Base64.
       final bytes = await _selectedImage!.readAsBytes();
       final base64Image = base64Encode(bytes);
 
-      // POST request with JSON body.
+      // Create a simple POST request with a JSON body.
       final response = await http.post(
         uri,
         headers: {"Content-Type": "application/json"},
@@ -161,10 +178,10 @@ class _AnalyzePageState extends State<AnalyzePage> {
       if (response.statusCode == 200) {
         result = jsonDecode(response.body);
       } else {
-        // Use dummy data for testing.
+        // If FastAPI doesn't respond as expected, create dummy data for testing.
         result = {
           'name': 'Dummy Analysis',
-          'color': 'color name', // example hex color
+          'color': '#FF5733', // example hex color
           'context': 'dummy context',
           'summary': 'dummy summary',
           'food': 'dummy food',
@@ -178,7 +195,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
         );
       }
     } catch (e) {
-      // In case of network error, use dummy data.
+      // In case of network error or connection issue, use dummy data.
       final resultDummy = {
         'name': 'Dummy Analysis',
         'color': '#FF5733',
@@ -200,7 +217,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
       _analysisResult = result;
     });
 
-    // Create a HistoryItem with the new name and color fields.
+    // Create a HistoryItem with the additional name and color fields.
     final newItem = HistoryItem(
       id: DateTime.now().toString(),
       imagePath: _selectedImage!.path,
@@ -219,7 +236,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
 
     setState(() {
       _isAnalyzing = false;
-      // Clear the selected image.
+      // Clear the selected image regardless of success.
       _selectedImage = null;
     });
 
@@ -259,7 +276,8 @@ class _AnalyzePageState extends State<AnalyzePage> {
               pw.Text('Summary: ${_analysisResult!['summary'] ?? "N/A"}',
                   style: pw.TextStyle(fontSize: 16)),
               pw.SizedBox(height: 10),
-              pw.Text('Food: ${_analysisResult!['food'] ?? "N/A"}',
+              pw.Text(
+                  'Food: ${_analysisResult!['food'] ?? "they are not food"}',
                   style: pw.TextStyle(fontSize: 16)),
               pw.SizedBox(height: 10),
               pw.Text('Calories: ${_analysisResult!['calories'] ?? "N/A"}',
@@ -348,7 +366,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text('object Analysis',
+        title: Text('Object Analysis',
             style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w600, color: Colors.white)),
         centerTitle: true,

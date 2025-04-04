@@ -15,11 +15,13 @@ class HistoryProvider with ChangeNotifier {
 
   Future<void> _insertItemToDatabase(HistoryItem item) async {
     final client = Supabase.instance.client;
+
     final response = await client.from('objectiq').insert({
       'id': item.id, // if you're setting your own ID
       'image_path': item.imagePath,
       'date': item.date.toIso8601String(),
-
+      'name': item.name,
+      'color': item.color,
       'context': item.context,
       'summary': item.summary,
       'food': item.food,

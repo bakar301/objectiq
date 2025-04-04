@@ -1,4 +1,5 @@
 // main.dart
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:objectiq/auth/login_page.dart';
 import 'package:objectiq/provider/auth_provider.dart';
@@ -22,9 +23,10 @@ Future<void> main() async {
 //supabase initialization
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
 
-  // Get the list of available cameras.
-  cameras = await availableCameras();
-
+  // Only get available cameras on non-web platforms.
+  if (!kIsWeb) {
+    cameras = await availableCameras();
+  }
   runApp(const MyApp());
 }
 

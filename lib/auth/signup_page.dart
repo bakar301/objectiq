@@ -21,6 +21,11 @@ class _SignupScreenState extends State<SignupScreen> {
   final _confirmPasswordController = TextEditingController();
   // This boolean controls the visibility of the password
   bool _obscureText = true;
+
+  // New state variables for error messages
+  String? _emailError;
+  String? _passwordError;
+
   @override
   void dispose() {
     super.dispose();
@@ -96,6 +101,9 @@ class _SignupScreenState extends State<SignupScreen> {
             decoration: InputDecoration(
               labelText: 'Email',
               prefixIcon: Icon(Icons.email),
+
+              // Show error notification under email field
+              errorText: _emailError,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -108,6 +116,9 @@ class _SignupScreenState extends State<SignupScreen> {
             decoration: InputDecoration(
               labelText: 'password',
               prefixIcon: Icon(Icons.email),
+
+              // Show error notification under email field
+              errorText: _passwordError,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -148,14 +159,32 @@ class _SignupScreenState extends State<SignupScreen> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () async {
+              // Validate inputs and show errors if any
+              setState(() {
+                _emailError = _emailController.text.isEmpty
+                    ? 'Please enter your email'
+                    : null;
+                _passwordError = _passwordController.text.isEmpty
+                    ? 'Please enter your password'
+                    : null;
+              });
+              // If any field is empty, do not proceed
+              if (_emailController.text.isEmpty ||
+                  _passwordController.text.isEmpty) {
+                return;
+              }
+              // Continue with Supabase authentication if all fields are valid
               final res = await _supabaseAuth.signUp(
                 email: _emailController.text,
                 password: _passwordController.text,
               );
               if (res.user != null) {
                 log("User register successfully");
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) => LoginScreen()));
+                // ignore: use_build_context_synchronously
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                );
               }
             },
             style: ElevatedButton.styleFrom(

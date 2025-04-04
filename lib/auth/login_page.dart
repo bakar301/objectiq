@@ -29,7 +29,9 @@ class _LoginScreenState extends State<LoginScreen> {
   // This boolean controls the visibility of the password
   bool _obscureText = true;
 
-  //i want to store email in that method to show in profile section
+  // New state variables for error messages
+  String? _emailError;
+  String? _passwordError;
 
   @override
   void dispose() {
@@ -106,6 +108,8 @@ class _LoginScreenState extends State<LoginScreen> {
             decoration: InputDecoration(
               labelText: 'Email',
               prefixIcon: Icon(Icons.email),
+              // Show error notification under email field
+              errorText: _emailError,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -118,6 +122,8 @@ class _LoginScreenState extends State<LoginScreen> {
             decoration: InputDecoration(
               labelText: 'Password',
               prefixIcon: Icon(Icons.lock),
+              // Show error notification under email field
+              errorText: _passwordError,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -136,14 +142,32 @@ class _LoginScreenState extends State<LoginScreen> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () async {
+              // Validate inputs and show errors if any
+              setState(() {
+                _emailError = _emailController.text.isEmpty
+                    ? 'Please enter your email'
+                    : null;
+                _passwordError = _passwordController.text.isEmpty
+                    ? 'Please enter your password'
+                    : null;
+              });
+              // If any field is empty, do not proceed
+              if (_emailController.text.isEmpty ||
+                  _passwordController.text.isEmpty) {
+                return;
+              }
+              // Continue with Supabase authentication if all fields are valid
               final res = await _supabaseAuth.signInWithPassword(
-                  email: _emailController.text,
-                  password: _passwordController.text);
+                email: _emailController.text,
+                password: _passwordController.text,
+              );
               if (res.user != null) {
                 log("User login successfully");
                 // ignore: use_build_context_synchronously
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) => HomePage()));
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomePage()),
+                );
               }
             },
             style: ElevatedButton.styleFrom(
