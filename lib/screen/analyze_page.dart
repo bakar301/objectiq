@@ -159,6 +159,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
       _isAnalyzing = true;
     });
 
+    // ignore: unused_local_variable
     Map<String, dynamic> resultData = {};
 
     // If running on Web, show error and exit.
@@ -192,9 +193,10 @@ class _AnalyzePageState extends State<AnalyzePage> {
       print("📏 File size: ${await file.length()} bytes");
 
       request.files.add(await http.MultipartFile.fromPath(
-        'image', // This must match your FastAPI parameter name for the file
+        'image',
         _selectedImage!.path,
-        contentType: MediaType('image', 'jpeg'), // Specify the content type
+        // Specify the content type
+        contentType: MediaType('image', 'jpeg'),
       ));
 
       final response = await request.send();
@@ -226,7 +228,6 @@ class _AnalyzePageState extends State<AnalyzePage> {
         print("📥 Full Response Body: $responseBody");
         print("📥 Full rawData Body: $rawData");
 
-        // Safely extract the nested response data
         final resultData = rawData['response']?['response'] ?? {};
 
         print("📥 Full resultData Body: $resultData");
