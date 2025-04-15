@@ -2,13 +2,10 @@ class HistoryItem {
   final String id;
   final String imagePath;
   final DateTime date;
-  // New fields added from FastAPI result.
   final String? context;
-  final String? summary;
-  final String? name;
-  final String? color;
   final String? food;
-  final String? calories;
+  final String? summary;
+  final int? calories;
   final String? recipe;
   final String? error;
 
@@ -17,10 +14,8 @@ class HistoryItem {
     required this.imagePath,
     required this.date,
     this.context,
-    this.name,
-    this.color,
-    this.summary,
     this.food,
+    this.summary,
     this.calories,
     this.recipe,
     this.error,

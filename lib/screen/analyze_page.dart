@@ -14,6 +14,8 @@ import 'package:universal_html/html.dart' as html;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http; // For HTTP calls
 
+import 'package:http_parser/http_parser.dart'; // Added import for MediaType
+
 /// This class uses your provided method to request storage permission
 /// and then returns the external storage path (Download folder on Android).
 class FileStorage {
@@ -107,6 +109,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
     final XFile? image = await _picker.pickImage(
       source: source,
       preferredCameraDevice: CameraDevice.rear,
+      imageQuality: 50,
     );
     if (image != null) {
       setState(() {
@@ -129,7 +132,9 @@ class _AnalyzePageState extends State<AnalyzePage> {
                 title: const Text('Take Photo'),
                 onTap: () {
                   Navigator.pop(context);
-                  _pickImage(ImageSource.camera);
+                  _pickImage(
+                    ImageSource.camera,
+                  );
                 },
               ),
               ListTile(
@@ -154,94 +159,126 @@ class _AnalyzePageState extends State<AnalyzePage> {
       _isAnalyzing = true;
     });
 
-    Map<String, dynamic> result;
+    Map<String, dynamic> resultData = {};
 
-    try {
-      // Adjust the endpoint URL based on your environment.
-      // For local development: http://127.0.0.1:8000/api/v1/upload-image/
-      // For Android Emulator: http://10.0.2.2:8000/api/v1/upload-image/
-      // For iOS Simulator: http://localhost:8000/api/v1/upload-image/
-      // For real devices on the same network: use your computer’s local network IP.
-      final uri = Uri.parse('http://127.0.0.1:8000/api/v1/upload-image/');
-
-      // Read the file bytes and encode them to Base64.
-      final bytes = await _selectedImage!.readAsBytes();
-      final base64Image = base64Encode(bytes);
-
-      // Create a simple POST request with a JSON body.
-      final response = await http.post(
-        uri,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"file": base64Image}),
-      );
-
-      if (response.statusCode == 200) {
-        result = jsonDecode(response.body);
-      } else {
-        // If FastAPI doesn't respond as expected, create dummy data for testing.
-        result = {
-          'name': 'Dummy Analysis',
-          'color': '#FF5733', // example hex color
-          'context': 'dummy context',
-          'summary': 'dummy summary',
-          'food': 'dummy food',
-          'calories': 'dummy calories',
-          'recipe': 'dummy recipe',
-          'error': 'No error',
-        };
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text("Server is busy. Dummy data used for testing.")),
-        );
-      }
-    } catch (e) {
-      // In case of network error or connection issue, use dummy data.
-      final resultDummy = {
-        'name': 'Dummy Analysis',
-        'color': '#FF5733',
-        'context': 'dummy context',
-        'summary': 'dummy summary',
-        'food': 'dummy food',
-        'calories': 'dummy calories',
-        'recipe': 'dummy recipe',
-        'error': 'No error',
-      };
-      result = resultDummy;
+    // If running on Web, show error and exit.
+    if (kIsWeb) {
+      print(
+          "❌ Web platform does not support Multipart image upload in this setup.");
+      print(
+          "🔎 Use a different upload method for Web or switch to a mobile device for testing.");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text("Server is busy. Dummy data used for testing.")),
+            content: Text(
+                "Image upload from Web is not supported. Check console for details.")),
+      );
+      setState(() {
+        _isAnalyzing = false;
+      });
+      return;
+    }
+
+    try {
+      final uri = Uri.parse(
+          'https://nutrition-and-recognition-f-j9xhv.kinsta.app/api/v1/upload-image/');
+
+      final request = http.MultipartRequest('POST', uri);
+
+      // 1. 🔍 Print selected image path
+      print("📸 Selected image path: ${_selectedImage!.path}");
+
+// ✅ Check file size before upload
+      final file = File(_selectedImage!.path);
+      print("📏 File size: ${await file.length()} bytes");
+
+      request.files.add(await http.MultipartFile.fromPath(
+        'image', // This must match your FastAPI parameter name for the file
+        _selectedImage!.path,
+        contentType: MediaType('image', 'jpeg'), // Specify the content type
+      ));
+
+      final response = await request.send();
+
+      // 2. 📤 Print request details
+      print("📤 Request to: ${request.url}");
+      print("📁 File being sent: ${_selectedImage!.path}");
+      print("📦 Headers: ${request.headers}");
+      print("📦 Fields: ${request.fields}");
+      print("📦 Files: ${request.files}");
+
+      for (var file in request.files) {
+        print("📎 File name: ${file.filename}");
+        print("📎 Content type: ${file.contentType}");
+      }
+
+      if (response.statusCode == 200) {
+        final responseBody = await response.stream.bytesToString();
+        final rawData = jsonDecode(responseBody);
+
+        Map<String, dynamic> recipe = rawData['response']['response']['recipe'];
+
+        String recipeSummary =
+            '\t\t\tIngredients: \n\t\t\t\t\t\t\t\t\t\t\t\t${(recipe['ingredients'] as List).join(', ')} \n\n'
+            '\t\t\tInstructions: \n\t\t\t\t\t\t\t\t\t\t\t\t${(recipe['instructions'] as List).join(', ')} \n\n'
+            '\t\t\tCooking Time: \n\t\t\t\t\t\t\t\t\t\t\t\t${recipe['cooking_time']} mins \n\n'
+            '\t\t\tDifficulty: \n\t\t\t\t\t\t\t\t\t\t\t\t${recipe['difficulty_level']}\n\n';
+        print("✅ Response Status: ${response.statusCode}");
+        print("📥 Full Response Body: $responseBody");
+        print("📥 Full rawData Body: $rawData");
+
+        // Safely extract the nested response data
+        final resultData = rawData['response']?['response'] ?? {};
+
+        print("📥 Full resultData Body: $resultData");
+        setState(() {
+          _analysisResult = resultData;
+          _analysisResult!['recipeSummary'] = recipeSummary;
+          print("Data for PDF: $_analysisResult");
+        });
+        _showAnalysisDialog(_analysisResult!);
+      } else {
+        print("❌ Upload failed with status code: ${response.statusCode}");
+        print("🧾 Reason: ${response.reasonPhrase}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Upload failed: ${response.statusCode}")),
+        );
+      }
+    } catch (e, stack) {
+      print("🚨 Exception during upload:");
+      print(e);
+      print("📄 Stack trace:");
+      print(stack);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error during upload: $e")),
       );
     }
 
     setState(() {
-      _analysisResult = result;
+      _isAnalyzing = false;
+      _selectedImage = null;
     });
-
-    // Create a HistoryItem with the additional name and color fields.
+    // setState(() {
+    //   _analysisResult = resultData;
+    //   print("📄Data for PDF: $_analysisResult");
+    // });
+    // Create a HistoryItem with the fields from the analysis result.
+    // print("📄Data for PDF: $_analysisResult");
     final newItem = HistoryItem(
       id: DateTime.now().toString(),
       imagePath: _selectedImage!.path,
       date: DateTime.now(),
-      context: result['context'],
-      summary: result['summary'],
-      food: result['food'],
-      calories: result['calories'],
-      recipe: result['recipe'],
-      error: result['error'],
-      name: result['name'],
-      color: result['color'],
+      context: _analysisResult?['context'] ?? "no context found",
+      food: _analysisResult?['food'] ?? "unknown",
+      summary: _analysisResult?['summary'] ?? "no summary found",
+      calories: _analysisResult?['calories'] ?? "unknown",
+      recipe: _analysisResult?['recipe'] ?? "unknown",
+      error: _analysisResult?['error'] ?? "",
     );
 
     Provider.of<HistoryProvider>(context, listen: false).addItem(newItem);
 
-    setState(() {
-      _isAnalyzing = false;
-      // Clear the selected image regardless of success.
-      _selectedImage = null;
-    });
-
     if (_analysisResult != null) {
-      _showAnalysisDialog(_analysisResult!);
+      // _showAnalysisDialog(_analysisResult!);
     }
   }
 
@@ -259,35 +296,77 @@ class _AnalyzePageState extends State<AnalyzePage> {
             children: [
               pw.Header(
                 level: 0,
-                child: pw.Text('Image Analysis Report',
-                    style: pw.TextStyle(
-                        fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                child: pw.Center(
+                  child: pw.Text('ObjectIq Analysis Report',
+                      style: pw.TextStyle(
+                          fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                ),
               ),
-              pw.SizedBox(height: 30),
-              pw.Text('Name: ${_analysisResult!['name'] ?? "N/A"}',
-                  style: pw.TextStyle(fontSize: 16)),
               pw.SizedBox(height: 10),
-              pw.Text('Color: ${_analysisResult!['color'] ?? "N/A"}',
-                  style: pw.TextStyle(fontSize: 16)),
-              pw.SizedBox(height: 10),
-              pw.Text('Context: ${_analysisResult!['context'] ?? "N/A"}',
-                  style: pw.TextStyle(fontSize: 16)),
-              pw.SizedBox(height: 10),
-              pw.Text('Summary: ${_analysisResult!['summary'] ?? "N/A"}',
-                  style: pw.TextStyle(fontSize: 16)),
-              pw.SizedBox(height: 10),
-              pw.Text(
-                  'Food: ${_analysisResult!['food'] ?? "they are not food"}',
-                  style: pw.TextStyle(fontSize: 16)),
-              pw.SizedBox(height: 10),
-              pw.Text('Calories: ${_analysisResult!['calories'] ?? "N/A"}',
-                  style: pw.TextStyle(fontSize: 16)),
-              pw.SizedBox(height: 10),
-              pw.Text('Recipe: ${_analysisResult!['recipe'] ?? "N/A"}',
-                  style: pw.TextStyle(fontSize: 16)),
-              pw.SizedBox(height: 10),
-              pw.Text('Error: ${_analysisResult!['error'] ?? "None"}',
-                  style: pw.TextStyle(fontSize: 16)),
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    'Context:',
+                    style: pw.TextStyle(
+                        fontSize: 16, fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.Text(
+                    '\t\t\t\t\t\t\t${_analysisResult?['context'] ?? "no context found"}',
+                    style: pw.TextStyle(fontSize: 16),
+                  ),
+                  pw.SizedBox(height: 15),
+                  pw.Text(
+                    'Food:',
+                    style: pw.TextStyle(
+                        fontSize: 16, fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.Text(
+                    '\t\t\t\t\t\t${_analysisResult?['food'] ?? "unknown"}',
+                    style: pw.TextStyle(fontSize: 16),
+                  ),
+                  pw.SizedBox(height: 15),
+                  pw.Text(
+                    'Summary:',
+                    style: pw.TextStyle(
+                        fontSize: 16, fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.Text(
+                    '\t\t\t\t\t\t\t${_analysisResult?['summary'] ?? "no summary found"}',
+                    style: pw.TextStyle(fontSize: 16),
+                  ),
+                  pw.SizedBox(height: 15),
+                  pw.Text(
+                    'Calories:',
+                    style: pw.TextStyle(
+                        fontSize: 16, fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.Text(
+                    '\t\t\t\t\t\t\t\t${_analysisResult?['calories'] ?? "unknown"}',
+                    style: pw.TextStyle(fontSize: 16),
+                  ),
+                  pw.SizedBox(height: 15),
+                  pw.Text(
+                    'recipe:',
+                    style: pw.TextStyle(
+                        fontSize: 16, fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.Text(
+                    '\t\t\t\t\t\t${_analysisResult?['recipeSummary'] ?? "unknown"}',
+                    style: pw.TextStyle(fontSize: 16),
+                  ),
+                  pw.SizedBox(height: 15),
+                  pw.Text(
+                    'Error:',
+                    style: pw.TextStyle(
+                        fontSize: 16, fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.Text(
+                    '\t\t\t\t\t\t${_analysisResult?['error'] ?? "None"}',
+                    style: pw.TextStyle(fontSize: 16),
+                  ),
+                ],
+              )
             ],
           );
         },
@@ -527,15 +606,15 @@ class AnalysisResultDialog extends StatelessWidget {
     final buttonColor = Colors.blue.shade900;
 
     // Parse the color value from the results, if provided.
-    Color? resultColor;
-    if (results['color'] != null) {
-      try {
-        final hexCode = results['color'].toString().replaceAll('#', '');
-        resultColor = Color(int.parse('0xff$hexCode'));
-      } catch (e) {
-        resultColor = Colors.transparent;
-      }
-    }
+    // Color? resultColor;
+    // if (results['color'] != null) {
+    //   try {
+    //     final hexCode = results['color'].toString().replaceAll('#', '');
+    //     resultColor = Color(int.parse('0xff$hexCode'));
+    //   } catch (e) {
+    //     resultColor = Colors.transparent;
+    //   }
+    // }
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -585,69 +664,68 @@ class AnalysisResultDialog extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                // New fields: Name and Color
-                Text('Name: ${results['name'] ?? "N/A"}',
+                const SizedBox(height: 10),
+                Text('Context:',
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: textColor)),
+                Text('\t\t\t\t\t\t\t\t\t${results['context'] ?? "N/A"}',
                     style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                         color: textColor)),
                 const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Text('Color: ',
-                        style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: textColor)),
-                    Container(
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: resultColor ?? Colors.transparent,
-                        border: Border.all(color: textColor),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(results['color'] ?? "N/A",
-                        style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: textColor)),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text('Context: ${results['context'] ?? "N/A"}',
+                Text('Summary:',
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: textColor)),
+                Text('\t\t\t\t\t\t\t\t\t${results['summary'] ?? "N/A"}',
                     style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                         color: textColor)),
                 const SizedBox(height: 10),
-                Text('Summary: ${results['summary'] ?? "N/A"}',
+                Text('Food:',
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: textColor)),
+                Text('\t\t\t\t\t\t${results['food'] ?? "N/A"}',
                     style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                         color: textColor)),
                 const SizedBox(height: 10),
-                Text('Food: ${results['food'] ?? "N/A"}',
+                Text('Calories:',
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: textColor)),
+                Text('\t\t\t\t\t\t\t\t${results['calories'] ?? "N/A"}',
                     style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                         color: textColor)),
                 const SizedBox(height: 10),
-                Text('Calories: ${results['calories'] ?? "N/A"}',
+                Text('Recipe:',
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: textColor)),
+                Text('${results['recipeSummary'] ?? "N/A"}',
                     style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                         color: textColor)),
                 const SizedBox(height: 10),
-                Text('Recipe: ${results['recipe'] ?? "N/A"}',
+                Text('Error:',
                     style: GoogleFonts.poppins(
                         fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.bold,
                         color: textColor)),
-                const SizedBox(height: 10),
-                Text('Error: ${results['error'] ?? "None"}',
+                Text('\t\t\t\t\t\t${results['error'] ?? "None"}',
                     style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,

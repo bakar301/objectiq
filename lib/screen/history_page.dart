@@ -75,11 +75,11 @@ class HistoryPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
-            Text(item.name ?? 'Unnamed Analysis',
+            Text(item.food ?? '',
                 style:
                     const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
             const SizedBox(height: 2),
-            Text(item.summary ?? 'No summary available',
+            Text(item.summary ?? '',
                 style: const TextStyle(
                   fontSize: 12,
                 )),

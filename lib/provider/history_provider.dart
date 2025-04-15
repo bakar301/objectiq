@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:objectiq/model/history_item.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+// import 'package:supabase_flutter/supabase_flutter.dart';
 
 class HistoryProvider with ChangeNotifier {
   final List<HistoryItem> _items = [];
@@ -10,32 +10,26 @@ class HistoryProvider with ChangeNotifier {
   void addItem(HistoryItem newItem) {
     _items.insert(0, newItem);
     notifyListeners();
-    _insertItemToDatabase(newItem);
+    // _insertItemToDatabase(newItem);
   }
 
-  Future<void> _insertItemToDatabase(HistoryItem item) async {
-    final client = Supabase.instance.client;
+  // Future<void> _insertItemToDatabase(HistoryItem item) async {
+  //   final client = Supabase.instance.client;
 
-    final response = await client.from('objectiq').insert({
-      'id': item.id, // if you're setting your own ID
-      'image_path': item.imagePath,
-      'date': item.date.toIso8601String(),
-      'name': item.name,
-      'color': item.color,
-      'context': item.context,
-      'summary': item.summary,
-      'food': item.food,
-      'calories': item.calories,
-      'recipe': item.recipe,
-      'error': item.error,
-    });
-
-    if (response.error != null) {
-      if (kDebugMode) {
-        print('Error inserting history: ${response.error!.message}');
-      }
-    }
-  }
+  //   final response = await client.from('object_iq').insert({
+  //     'user_id': Supabase.instance.client.auth.currentUser
+  //         ?.id, // if you're using Supabase Auth
+  //     item.id: 'id',
+  //     item.imagePath: 'image_path',
+  //     item.date.toIso8601String(): 'date',
+  //     item.context: 'context',
+  //     item.food: 'food',
+  //     item.summary: 'summary',
+  //     item.calories: 'calories',
+  //     item.recipe: 'recipe',
+  //     item.error: 'error',
+  //   }).select();
+  // }
 
   void removeItem(String id) {
     _items.removeWhere((item) => item.id == id);
@@ -49,3 +43,15 @@ class HistoryProvider with ChangeNotifier {
     // Optionally: clear the remote database
   }
 }
+
+// class NoteDatabase{
+//      final client = Supabase.instance.client.from('object_iq');
+    
+
+
+    
+   
+//     Future<void> createobjectiq(Note newNote) async {
+//       await client.insert(newNote.toMap());
+//     }
+// }

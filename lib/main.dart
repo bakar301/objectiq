@@ -2,7 +2,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:objectiq/auth/login_page.dart';
-import 'package:objectiq/provider/auth_provider.dart';
+// import 'package:objectiq/provider/auth_provider.dart';
 import 'package:objectiq/provider/history_provider.dart';
 import 'package:objectiq/provider/theme_provider.dart';
 import 'package:objectiq/screen/home_page.dart';
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        // ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => HistoryProvider()),
       ],
       child: Consumer<ThemeProvider>(
