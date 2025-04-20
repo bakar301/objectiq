@@ -217,13 +217,33 @@ class _AnalyzePageState extends State<AnalyzePage> {
         final responseBody = await response.stream.bytesToString();
         final rawData = jsonDecode(responseBody);
 
-        Map<String, dynamic> recipe = rawData['response']['response']['recipe'];
+        final recipeData = rawData['response']?['response']?['recipe'];
 
-        String recipeSummary =
-            '\t\t\tIngredients: \n\t\t\t\t\t\t\t\t\t\t\t\t${(recipe['ingredients'] as List).join(', ')} \n\n'
-            '\t\t\tInstructions: \n\t\t\t\t\t\t\t\t\t\t\t\t${(recipe['instructions'] as List).join(', ')} \n\n'
-            '\t\t\tCooking Time: \n\t\t\t\t\t\t\t\t\t\t\t\t${recipe['cooking_time']} mins \n\n'
-            '\t\t\tDifficulty: \n\t\t\t\t\t\t\t\t\t\t\t\t${recipe['difficulty_level']}\n\n';
+        String recipeSummary;
+
+        if (recipeData != null && recipeData is Map<String, dynamic>) {
+          Map<String, dynamic> recipe = recipeData;
+
+          recipeSummary =
+              '\t\t\tIngredients: \n\t\t\t\t\t\t\t\t\t\t\t\t${(recipe['ingredients'] as List).join(', ')} \n\n'
+              '\t\t\tInstructions: \n\t\t\t\t\t\t\t\t\t\t\t\t${(recipe['instructions'] as List).join(', ')} \n\n'
+              '\t\t\tCooking Time: \n\t\t\t\t\t\t\t\t\t\t\t\t${recipe['cooking_time']} mins \n\n'
+              '\t\t\tDifficulty: \n\t\t\t\t\t\t\t\t\t\t\t\t${recipe['difficulty_level']}\n\n';
+        } else {
+          recipeSummary = 'Ingredients: null\n'
+              'Instructions: null\n'
+              'Cooking Time: null\n'
+              'Difficulty: null\n';
+        }
+
+        // Map<String, dynamic> recipe =
+        //     rawData['response']['response']?['recipe'] ?? {};
+
+        // String recipeSummary =
+        //     '\t\t\tIngredients: \n\t\t\t\t\t\t\t\t\t\t\t\t${(recipe['ingredients'] as List).join(', ') } \n\n'
+        //     '\t\t\tInstructions: \n\t\t\t\t\t\t\t\t\t\t\t\t${(recipe['instructions'] as List).join(', ')} \n\n'
+        //     '\t\t\tCooking Time: \n\t\t\t\t\t\t\t\t\t\t\t\t${recipe['cooking_time']} mins \n\n'
+        //     '\t\t\tDifficulty: \n\t\t\t\t\t\t\t\t\t\t\t\t${recipe['difficulty_level']}\n\n';
         print("✅ Response Status: ${response.statusCode}");
         print("📥 Full Response Body: $responseBody");
         print("📥 Full rawData Body: $rawData");
