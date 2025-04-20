@@ -109,7 +109,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
     final XFile? image = await _picker.pickImage(
       source: source,
       preferredCameraDevice: CameraDevice.rear,
-      imageQuality: 50,
+      imageQuality: 70,
     );
     if (image != null) {
       setState(() {
@@ -691,7 +691,7 @@ class AnalysisResultDialog extends StatelessWidget {
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: textColor)),
-                Text('\t\t\t\t\t\t\t\t\t${results['context'] ?? "N/A"}',
+                Text('\t\t\t\t\t\t\t\t\t${results['context'] ?? "No context"}',
                     style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -702,7 +702,7 @@ class AnalysisResultDialog extends StatelessWidget {
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: textColor)),
-                Text('\t\t\t\t\t\t\t\t\t${results['summary'] ?? "N/A"}',
+                Text('\t\t\t\t\t\t\t\t\t${results['summary'] ?? "No summmary"}',
                     style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -713,7 +713,7 @@ class AnalysisResultDialog extends StatelessWidget {
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: textColor)),
-                Text('\t\t\t\t\t\t${results['food'] ?? "N/A"}',
+                Text('\t\t\t\t\t\t${results['food'] ?? "No food"}',
                     style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -724,7 +724,7 @@ class AnalysisResultDialog extends StatelessWidget {
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: textColor)),
-                Text('\t\t\t\t\t\t\t\t${results['calories'] ?? "N/A"}',
+                Text('\t\t\t\t\t\t\t\t${results['calories'] ?? "No calories"}',
                     style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
