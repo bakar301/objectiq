@@ -69,7 +69,7 @@ class _HistoryPageState extends State<HistoryPage> {
           const SizedBox(height: 24),
           Text('No analysis history yet',
               style: TextStyle(
-                  color: Colors.grey.shade600,
+                  color: const Color.fromARGB(255, 127, 124, 124),
                   fontSize: 18,
                   fontWeight: FontWeight.w500)),
         ],

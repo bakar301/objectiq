@@ -582,7 +582,9 @@ class _AnalyzePageState extends State<AnalyzePage> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: isDark ? Colors.black45 : Colors.blue.shade100,
+                    color: isDark
+                        ? Colors.black45
+                        : const Color.fromARGB(255, 183, 221, 252),
                     blurRadius: 15,
                     spreadRadius: 2,
                   ),
@@ -634,10 +636,10 @@ class _AnalyzePageState extends State<AnalyzePage> {
               decoration: BoxDecoration(
                 color: isDark
                     ? const Color.fromARGB(255, 19, 19, 19)
-                    : Colors.white,
+                    : Colors.blue.shade100,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isDark ? Colors.grey[600]! : Colors.blue.shade100,
+                  color: isDark ? Colors.grey[600]! : Colors.blue.shade300,
                   width: 2,
                 ),
               ),
@@ -674,7 +676,8 @@ class AnalysisResultDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.blue.shade900;
-    final backgroundColor = isDark ? Colors.grey[850] : Colors.white;
+    final backgroundColor =
+        isDark ? Colors.grey[850] : const Color.fromARGB(255, 254, 250, 250);
     final buttonColor = Colors.blue.shade900;
 
     // Parse the color value from the results, if provided.
@@ -705,7 +708,10 @@ class AnalysisResultDialog extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: isDark
                   ? [Colors.grey[800]!, Colors.grey[850]!]
-                  : [Colors.blue.shade50, Colors.white],
+                  : [
+                      const Color.fromARGB(255, 234, 244, 251),
+                      const Color.fromARGB(255, 255, 255, 255)
+                    ],
             ),
             boxShadow: [
               BoxShadow(
@@ -846,10 +852,12 @@ class AnalysisResultDialog extends StatelessWidget {
                 const SizedBox(height: 25),
                 ElevatedButton.icon(
                   onPressed: onDownload,
-                  icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+                  icon: const Icon(Icons.picture_as_pdf,
+                      color: Color.fromARGB(255, 255, 254, 254)),
                   label: Text('Download Full Report',
                       style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600, color: Colors.white)),
+                          fontWeight: FontWeight.w600,
+                          color: const Color.fromARGB(255, 255, 253, 253))),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: buttonColor,
                     padding: const EdgeInsets.symmetric(vertical: 16),
