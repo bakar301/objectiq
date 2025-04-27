@@ -1,57 +1,52 @@
+// lib/provider/history_provider.dart
 import 'package:flutter/foundation.dart';
 import 'package:objectiq/model/history_item.dart';
-// import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:objectiq/provider/databasehelper.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class HistoryProvider with ChangeNotifier {
   final List<HistoryItem> _items = [];
+  final _db = DatabaseHelper();
 
-  List<HistoryItem> get items => [..._items];
+  List<HistoryItem> get items => List.unmodifiable(_items);
 
-  void addItem(HistoryItem newItem) {
+  Future<void> loadHistory() async {
+    // Ensure user is logged in
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    // Fetch from local SQLite
+    _items
+      ..clear()
+      ..addAll(await _db.fetchAll());
+    notifyListeners();
+  }
+
+  Future<void> fetchLatestHistory() async {
+    await loadHistory();
+  }
+
+  Future<void> addItem(HistoryItem newItem) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    // Update in-memory list
     _items.insert(0, newItem);
     notifyListeners();
-    // _insertItemToDatabase(newItem);
+
+    // Persist locally
+    await _db.insertItem(newItem);
   }
 
-  // Future<void> _insertItemToDatabase(HistoryItem item) async {
-  //   final client = Supabase.instance.client;
-
-  //   final response = await client.from('object_iq').insert({
-  //     'user_id': Supabase.instance.client.auth.currentUser
-  //         ?.id, // if you're using Supabase Auth
-  //     item.id: 'id',
-  //     item.imagePath: 'image_path',
-  //     item.date.toIso8601String(): 'date',
-  //     item.context: 'context',
-  //     item.food: 'food',
-  //     item.summary: 'summary',
-  //     item.calories: 'calories',
-  //     item.recipe: 'recipe',
-  //     item.error: 'error',
-  //   }).select();
-  // }
-
-  void removeItem(String id) {
-    _items.removeWhere((item) => item.id == id);
+  Future<void> removeItem(String id) async {
+    _items.removeWhere((it) => it.id == id);
     notifyListeners();
-    // Optionally: delete the item from the database
+    await _db.deleteItem(id);
   }
 
-  void clearAll() {
+  Future<void> clearAll() async {
     _items.clear();
     notifyListeners();
-    // Optionally: clear the remote database
+    await _db.clearAll();
   }
 }
-
-// class NoteDatabase{
-//      final client = Supabase.instance.client.from('object_iq');
-    
-
-
-    
-   
-//     Future<void> createobjectiq(Note newNote) async {
-//       await client.insert(newNote.toMap());
-//     }
-// }

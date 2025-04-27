@@ -109,7 +109,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
     final XFile? image = await _picker.pickImage(
       source: source,
       preferredCameraDevice: CameraDevice.rear,
-      imageQuality: 70,
+      imageQuality: 60,
     );
     if (image != null) {
       setState(() {
@@ -257,6 +257,33 @@ class _AnalyzePageState extends State<AnalyzePage> {
           print("Data for PDF: $_analysisResult");
         });
         _showAnalysisDialog(_analysisResult!);
+//historyitem
+        final newItem = HistoryItem(
+          id: DateTime.now().toString(),
+          date: DateTime.now(),
+          context: _analysisResult?['context'] ?? "no context found",
+          summary: _analysisResult?['summary'] ?? "no summary found",
+          error: _analysisResult?['error'] ?? "",
+        );
+
+        Provider.of<HistoryProvider>(context, listen: false).addItem(newItem);
+
+//database
+        // final supabase = Supabase.instance.client;
+        // final user = supabase.auth.currentUser;
+
+        // final dataresponse = await supabase.from('history').insert({
+        //   'user_id': user?.id,
+        //   'context': resultData['context'] ?? 'no context found',
+        //   'summary': resultData['summary'] ?? 'no summary found',
+        //   'error': resultData['error'] ?? '',
+        //   'date': DateTime.now().toIso8601String(),
+        // });
+        // if (dataresponse.error != null) {
+        //   print('❌ Error inserting data: ${dataresponse.error!.message}');
+        // } else {
+        //   print('✅ Data inserted successfully into Supabase!');
+        // }
       } else {
         print("❌ Upload failed with status code: ${response.statusCode}");
         print("🧾 Reason: ${response.reasonPhrase}");
@@ -284,19 +311,6 @@ class _AnalyzePageState extends State<AnalyzePage> {
     // });
     // Create a HistoryItem with the fields from the analysis result.
     // print("📄Data for PDF: $_analysisResult");
-    final newItem = HistoryItem(
-      id: DateTime.now().toString(),
-      imagePath: _selectedImage!.path,
-      date: DateTime.now(),
-      context: _analysisResult?['context'] ?? "no context found",
-      food: _analysisResult?['food'] ?? "unknown",
-      summary: _analysisResult?['summary'] ?? "no summary found",
-      calories: _analysisResult?['calories'] ?? "unknown",
-      recipe: _analysisResult?['recipe'] ?? "unknown",
-      error: _analysisResult?['error'] ?? "",
-    );
-
-    Provider.of<HistoryProvider>(context, listen: false).addItem(newItem);
 
     if (_analysisResult != null) {
       // _showAnalysisDialog(_analysisResult!);
@@ -324,70 +338,107 @@ class _AnalyzePageState extends State<AnalyzePage> {
                 ),
               ),
               pw.SizedBox(height: 10),
-              pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Context:',
-                    style: pw.TextStyle(
-                        fontSize: 16, fontWeight: pw.FontWeight.bold),
-                  ),
-                  pw.Text(
-                    '\t\t\t\t\t\t\t${_analysisResult?['context'] ?? "no context found"}',
-                    style: pw.TextStyle(fontSize: 16),
-                  ),
-                  pw.SizedBox(height: 15),
-                  pw.Text(
-                    'Food:',
-                    style: pw.TextStyle(
-                        fontSize: 16, fontWeight: pw.FontWeight.bold),
-                  ),
-                  pw.Text(
-                    '\t\t\t\t\t\t${_analysisResult?['food'] ?? "unknown"}',
-                    style: pw.TextStyle(fontSize: 16),
-                  ),
-                  pw.SizedBox(height: 15),
-                  pw.Text(
-                    'Summary:',
-                    style: pw.TextStyle(
-                        fontSize: 16, fontWeight: pw.FontWeight.bold),
-                  ),
-                  pw.Text(
-                    '\t\t\t\t\t\t\t${_analysisResult?['summary'] ?? "no summary found"}',
-                    style: pw.TextStyle(fontSize: 16),
-                  ),
-                  pw.SizedBox(height: 15),
-                  pw.Text(
-                    'Calories:',
-                    style: pw.TextStyle(
-                        fontSize: 16, fontWeight: pw.FontWeight.bold),
-                  ),
-                  pw.Text(
-                    '\t\t\t\t\t\t\t\t${_analysisResult?['calories'] ?? "unknown"}',
-                    style: pw.TextStyle(fontSize: 16),
-                  ),
-                  pw.SizedBox(height: 15),
-                  pw.Text(
-                    'recipe:',
-                    style: pw.TextStyle(
-                        fontSize: 16, fontWeight: pw.FontWeight.bold),
-                  ),
-                  pw.Text(
-                    '\t\t\t\t\t\t${_analysisResult?['recipeSummary'] ?? "unknown"}',
-                    style: pw.TextStyle(fontSize: 16),
-                  ),
-                  pw.SizedBox(height: 15),
-                  pw.Text(
-                    'Error:',
-                    style: pw.TextStyle(
-                        fontSize: 16, fontWeight: pw.FontWeight.bold),
-                  ),
-                  pw.Text(
-                    '\t\t\t\t\t\t${_analysisResult?['error'] ?? "None"}',
-                    style: pw.TextStyle(fontSize: 16),
-                  ),
-                ],
-              )
+              if (_analysisResult?['recipe'] == null) ...[
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'Context:',
+                      style: pw.TextStyle(
+                          fontSize: 16, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      '\t\t\t\t\t\t\t${_analysisResult?['context'] ?? "no context found"}',
+                      style: pw.TextStyle(fontSize: 16),
+                    ),
+                    pw.SizedBox(height: 15),
+                    pw.Text(
+                      'Summary:',
+                      style: pw.TextStyle(
+                          fontSize: 16, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      '\t\t\t\t\t\t\t${_analysisResult?['summary'] ?? "no summary found"}',
+                      style: pw.TextStyle(fontSize: 16),
+                    ),
+                    pw.SizedBox(height: 15),
+                    pw.Text(
+                      'Error:',
+                      style: pw.TextStyle(
+                          fontSize: 16, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      '\t\t\t\t\t\t${_analysisResult?['error'] ?? "None"}',
+                      style: pw.TextStyle(fontSize: 16),
+                    ),
+                  ],
+                )
+              ] else ...[
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'Context:',
+                      style: pw.TextStyle(
+                          fontSize: 16, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      '\t\t\t\t\t\t\t${_analysisResult?['context'] ?? "no context found"}',
+                      style: pw.TextStyle(fontSize: 16),
+                    ),
+                    pw.SizedBox(height: 15),
+                    pw.Text(
+                      'Food:',
+                      style: pw.TextStyle(
+                          fontSize: 16, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      '\t\t\t\t\t\t${_analysisResult?['food'] ?? "unknown"}',
+                      style: pw.TextStyle(fontSize: 16),
+                    ),
+                    pw.SizedBox(height: 15),
+                    pw.Text(
+                      'Summary:',
+                      style: pw.TextStyle(
+                          fontSize: 16, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      '\t\t\t\t\t\t\t${_analysisResult?['summary'] ?? "no summary found"}',
+                      style: pw.TextStyle(fontSize: 16),
+                    ),
+                    pw.SizedBox(height: 15),
+                    pw.Text(
+                      'Calories:',
+                      style: pw.TextStyle(
+                          fontSize: 16, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      '\t\t\t\t\t\t\t\t${_analysisResult?['calories'] ?? "unknown"}',
+                      style: pw.TextStyle(fontSize: 16),
+                    ),
+                    pw.SizedBox(height: 15),
+                    pw.Text(
+                      'recipe:',
+                      style: pw.TextStyle(
+                          fontSize: 16, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      '\t\t\t\t\t\t${_analysisResult?['recipeSummary'] ?? "unknown"}',
+                      style: pw.TextStyle(fontSize: 16),
+                    ),
+                    pw.SizedBox(height: 15),
+                    pw.Text(
+                      'Error:',
+                      style: pw.TextStyle(
+                          fontSize: 16, fontWeight: pw.FontWeight.bold),
+                    ),
+                    pw.Text(
+                      '\t\t\t\t\t\t${_analysisResult?['error'] ?? "None"}',
+                      style: pw.TextStyle(fontSize: 16),
+                    ),
+                  ],
+                )
+              ]
             ],
           );
         },
@@ -685,72 +736,113 @@ class AnalysisResultDialog extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Text('Context:',
-                    style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: textColor)),
-                Text('\t\t\t\t\t\t\t\t\t${results['context'] ?? "No context"}',
-                    style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: textColor)),
-                const SizedBox(height: 10),
-                Text('Summary:',
-                    style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: textColor)),
-                Text('\t\t\t\t\t\t\t\t\t${results['summary'] ?? "No summmary"}',
-                    style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: textColor)),
-                const SizedBox(height: 10),
-                Text('Food:',
-                    style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: textColor)),
-                Text('\t\t\t\t\t\t${results['food'] ?? "No food"}',
-                    style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: textColor)),
-                const SizedBox(height: 10),
-                Text('Calories:',
-                    style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: textColor)),
-                Text('\t\t\t\t\t\t\t\t${results['calories'] ?? "No calories"}',
-                    style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: textColor)),
-                const SizedBox(height: 10),
-                Text('Recipe:',
-                    style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: textColor)),
-                Text('${results['recipeSummary'] ?? "N/A"}',
-                    style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: textColor)),
-                const SizedBox(height: 10),
-                Text('Error:',
-                    style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: textColor)),
-                Text('\t\t\t\t\t\t${results['error'] ?? "None"}',
-                    style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: textColor)),
+                if (results['recipe'] == null) ...[
+                  const SizedBox(height: 10),
+                  Text('Context:',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: textColor)),
+                  Text(
+                      '\t\t\t\t\t\t\t\t\t${results['context'] ?? "No context"}',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: textColor)),
+                  const SizedBox(height: 10),
+                  Text('Summary:',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: textColor)),
+                  Text(
+                      '\t\t\t\t\t\t\t\t\t${results['summary'] ?? "No summary"}',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: textColor)),
+                  const SizedBox(height: 10),
+                  Text('Error:',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: textColor)),
+                  Text('\t\t\t\t\t\t${results['error'] ?? "None"}',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: textColor)),
+                  const SizedBox(height: 10),
+                ] else ...[
+                  Text('Context:',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: textColor)),
+                  Text(
+                      '\t\t\t\t\t\t\t\t\t${results['context'] ?? "No context"}',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: textColor)),
+                  const SizedBox(height: 10),
+                  Text('Summary:',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: textColor)),
+                  Text(
+                      '\t\t\t\t\t\t\t\t\t${results['summary'] ?? "No summary"}',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: textColor)),
+                  const SizedBox(height: 10),
+                  Text('Food:',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: textColor)),
+                  Text('\t\t\t\t\t\t${results['food'] ?? "No food"}',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: textColor)),
+                  const SizedBox(height: 10),
+                  Text('Calories:',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: textColor)),
+                  Text(
+                      '\t\t\t\t\t\t\t\t${results['calories'] ?? "No calories"}',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: textColor)),
+                  const SizedBox(height: 10),
+                  Text('Recipe:',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: textColor)),
+                  Text('${results['recipeSummary'] ?? "N/A"}',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: textColor)),
+                  const SizedBox(height: 10),
+                  Text('Error:',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: textColor)),
+                  Text('\t\t\t\t\t\t${results['error'] ?? "None"}',
+                      style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: textColor)),
+                ],
                 const SizedBox(height: 25),
                 ElevatedButton.icon(
                   onPressed: onDownload,

@@ -4,8 +4,22 @@ import 'package:objectiq/model/history_item.dart';
 import 'package:objectiq/provider/history_provider.dart';
 import 'package:provider/provider.dart';
 
-class HistoryPage extends StatelessWidget {
+class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
+
+  @override
+  State<HistoryPage> createState() => _HistoryPageState();
+}
+
+class _HistoryPageState extends State<HistoryPage> {
+  @override
+  void initState() {
+    super.initState();
+    // fire once after first frame to load from SQLite
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<HistoryProvider>().fetchLatestHistory();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +89,7 @@ class HistoryPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
-            Text(item.food ?? '',
+            Text(item.context ?? '',
                 style:
                     const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
             const SizedBox(height: 2),
