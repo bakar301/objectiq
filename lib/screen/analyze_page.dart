@@ -109,7 +109,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
     final XFile? image = await _picker.pickImage(
       source: source,
       preferredCameraDevice: CameraDevice.rear,
-      imageQuality: 60,
+      imageQuality: 50,
     );
     if (image != null) {
       setState(() {
@@ -188,7 +188,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
       // 1. 🔍 Print selected image path
       print("📸 Selected image path: ${_selectedImage!.path}");
 
-// ✅ Check file size before upload
+      // ✅ Check file size before upload
       final file = File(_selectedImage!.path);
       print("📏 File size: ${await file.length()} bytes");
 
@@ -257,7 +257,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
           print("Data for PDF: $_analysisResult");
         });
         _showAnalysisDialog(_analysisResult!);
-//historyitem
+        //historyitem
         final newItem = HistoryItem(
           id: DateTime.now().toString(),
           date: DateTime.now(),
@@ -268,7 +268,7 @@ class _AnalyzePageState extends State<AnalyzePage> {
 
         Provider.of<HistoryProvider>(context, listen: false).addItem(newItem);
 
-//database
+        //database
         // final supabase = Supabase.instance.client;
         // final user = supabase.auth.currentUser;
 
@@ -349,16 +349,6 @@ class _AnalyzePageState extends State<AnalyzePage> {
                     ),
                     pw.Text(
                       '\t\t\t\t\t\t\t${_analysisResult?['context'] ?? "no context found"}',
-                      style: pw.TextStyle(fontSize: 16),
-                    ),
-                    pw.SizedBox(height: 15),
-                    pw.Text(
-                      'Summary:',
-                      style: pw.TextStyle(
-                          fontSize: 16, fontWeight: pw.FontWeight.bold),
-                    ),
-                    pw.Text(
-                      '\t\t\t\t\t\t\t${_analysisResult?['summary'] ?? "no summary found"}',
                       style: pw.TextStyle(fontSize: 16),
                     ),
                     pw.SizedBox(height: 15),
@@ -515,11 +505,16 @@ class _AnalyzePageState extends State<AnalyzePage> {
     final textColor = isDark ? Colors.white : Colors.blue.shade900;
 
     return Scaffold(
+      backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text('Object Analysis',
-            style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600, color: Colors.white)),
+        title: Text(
+          'Object Analysis',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
         centerTitle: true,
         flexibleSpace: Container(
           decoration: BoxDecoration(
@@ -543,7 +538,106 @@ class _AnalyzePageState extends State<AnalyzePage> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              _buildImageSection(isDark, textColor),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: _selectedImage != null
+                    ? Container(
+                        key: ValueKey(_selectedImage),
+                        padding: const EdgeInsets.all(15),
+                        // decoration: BoxDecoration(
+                        //   color: isDark ? Colors.grey[800] : Colors.white,
+                        //   borderRadius: BorderRadius.circular(20),
+                        //   boxShadow: [
+                        //     BoxShadow(
+                        //       color: isDark
+                        //           ? Colors.black45
+                        //           : const Color.fromARGB(255, 183, 221, 252),
+                        //       blurRadius: 15,
+                        //       spreadRadius: 2,
+                        //     ),
+                        //   ],
+                        // ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Selected Image',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: textColor,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.close,
+                                    color: isDark
+                                        ? Colors.redAccent
+                                        : Colors.red.shade700,
+                                  ),
+                                  onPressed: () =>
+                                      setState(() => _selectedImage = null),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(15),
+                              child: kIsWeb
+                                  ? Image.network(
+                                      _selectedImage!.path,
+                                      height: 250,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Image.file(
+                                      _selectedImage!,
+                                      height: 250,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                    ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Container(
+                        key: const ValueKey('placeholder'),
+                        height: 200,
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color.fromARGB(255, 19, 19, 19)
+                              : const Color.fromARGB(255, 238, 245, 251),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.grey[600]!
+                                : const Color.fromARGB(255, 227, 241, 250),
+                            width: 2,
+                          ),
+                        ),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.photo_camera,
+                                  size: 40, color: textColor),
+                              const SizedBox(height: 15),
+                              Text(
+                                'No image selected',
+                                style: GoogleFonts.poppins(
+                                  color: textColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+              ),
               const SizedBox(height: 30),
             ],
           ),
@@ -567,97 +661,6 @@ class _AnalyzePageState extends State<AnalyzePage> {
         backgroundColor:
             _selectedImage != null ? Colors.indigo : Colors.blue.shade900,
       ),
-    );
-  }
-
-  Widget _buildImageSection(bool isDark, Color textColor) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
-      child: _selectedImage != null
-          ? Container(
-              key: ValueKey(_selectedImage),
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.grey[800] : Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: isDark
-                        ? Colors.black45
-                        : const Color.fromARGB(255, 183, 221, 252),
-                    blurRadius: 15,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Selected Image',
-                          style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: textColor)),
-                      IconButton(
-                        icon: Icon(Icons.close,
-                            color: isDark
-                                ? Colors.redAccent
-                                : Colors.red.shade700),
-                        onPressed: () => setState(() => _selectedImage = null),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: kIsWeb
-                        ? Image.network(
-                            _selectedImage!.path,
-                            height: 250,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.file(
-                            _selectedImage!,
-                            height: 250,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                  ),
-                ],
-              ),
-            )
-          : Container(
-              key: const ValueKey('placeholder'),
-              height: 200,
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? const Color.fromARGB(255, 19, 19, 19)
-                    : Colors.blue.shade100,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isDark ? Colors.grey[600]! : Colors.blue.shade300,
-                  width: 2,
-                ),
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.photo_camera, size: 40, color: textColor),
-                    const SizedBox(height: 15),
-                    Text('No image selected',
-                        style: GoogleFonts.poppins(
-                            color: textColor,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500)),
-                  ],
-                ),
-              ),
-            ),
     );
   }
 }
@@ -751,18 +754,6 @@ class AnalysisResultDialog extends StatelessWidget {
                           color: textColor)),
                   Text(
                       '\t\t\t\t\t\t\t\t\t${results['context'] ?? "No context"}',
-                      style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: textColor)),
-                  const SizedBox(height: 10),
-                  Text('Summary:',
-                      style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: textColor)),
-                  Text(
-                      '\t\t\t\t\t\t\t\t\t${results['summary'] ?? "No summary"}',
                       style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,

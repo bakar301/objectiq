@@ -22,8 +22,28 @@ class _SettingsPageState extends State<SettingsPage> {
     final email = getCurrentUserEmail() ?? 'No Email';
 
     return Scaffold(
+      backgroundColor:
+          Provider.of<ThemeProvider>(context).themeMode == ThemeMode.dark
+              ? Colors.black
+              : Colors.white,
       appBar: AppBar(
-          automaticallyImplyLeading: false, title: const Text('Settings')),
+        automaticallyImplyLeading: false,
+        title: const Center(
+          child: Text(
+            'Settings',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue.shade900, Colors.indigo.shade700],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [

@@ -24,7 +24,9 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     final history = Provider.of<HistoryProvider>(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
+      backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Center(
@@ -84,7 +86,10 @@ class _HistoryPageState extends State<HistoryPage> {
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
         leading: Icon(Icons.analytics, color: Colors.blue.shade900),
-        title: Text(DateFormat('MMM dd, yyyy - HH:mm').format(item.date)),
+        title: Text(
+          DateFormat('MMM dd, yyyy - HH:mm').format(item.date),
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -93,7 +98,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 style:
                     const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
             const SizedBox(height: 2),
-            Text(item.summary ?? '',
+            Text(item.error ?? '',
                 style: const TextStyle(
                   fontSize: 12,
                 )),
