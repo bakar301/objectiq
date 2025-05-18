@@ -3,6 +3,9 @@ class HistoryItem {
   final DateTime date;
   final String? context;
   final String? summary;
+  final String? food;
+  final String? recipeSummary;
+  final int? calories;
   final String? error;
 
   HistoryItem({
@@ -11,5 +14,8 @@ class HistoryItem {
     this.context,
     this.summary,
     this.error,
+    this.recipeSummary,
+    this.food,
+    this.calories,
   });
 }

@@ -22,6 +22,9 @@ class DatabaseHelper {
             user_id TEXT NOT NULL,
             context TEXT,
             summary TEXT,
+            food TEXT,
+            recipeSummary string,
+            calories numeric,
             error TEXT,
             date TEXT
           )
@@ -42,6 +45,9 @@ class DatabaseHelper {
       'user_id': userId,
       'context': item.context,
       'summary': item.summary,
+      'food': item.food,
+      'recipeSummary': item.recipeSummary,
+      'calories': item.calories,
       'error': item.error,
       'date': item.date.toIso8601String(),
     });
@@ -62,6 +68,9 @@ class DatabaseHelper {
               id: row['id'] as String,
               context: row['context'] as String?,
               summary: row['summary'] as String?,
+              food: row['food'] as String?,
+              recipeSummary: row['recipeSummary'] as String?,
+              calories: row['calories'] as int?,
               error: row['error'] as String?,
               date: DateTime.parse(row['date'] as String),
             ))
@@ -85,6 +94,9 @@ class DatabaseHelper {
       id: row['id'] as String,
       context: row['context'] as String?,
       summary: row['summary'] as String?,
+      food: row['food'] as String?,
+      recipeSummary: row['recipeSummary'] as String?,
+      calories: row['calories'] as int?,
       error: row['error'] as String?,
       date: DateTime.parse(row['date'] as String),
     );

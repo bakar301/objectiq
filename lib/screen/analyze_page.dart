@@ -263,6 +263,8 @@ class _AnalyzePageState extends State<AnalyzePage> {
           date: DateTime.now(),
           context: _analysisResult?['context'] ?? "no context found",
           summary: _analysisResult?['summary'] ?? "no summary found",
+          food: _analysisResult?['food'] ?? "",
+          calories: _analysisResult?['calories'] ?? "",
           error: _analysisResult?['error'] ?? "",
         );
 

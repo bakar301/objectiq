@@ -15,7 +15,6 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   void initState() {
     super.initState();
-    // fire once after first frame to load from SQLite
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HistoryProvider>().fetchLatestHistory();
     });
@@ -25,6 +24,7 @@ class _HistoryPageState extends State<HistoryPage> {
   Widget build(BuildContext context) {
     final history = Provider.of<HistoryProvider>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       backgroundColor: isDark ? Colors.black : Colors.white,
       appBar: AppBar(
@@ -88,7 +88,7 @@ class _HistoryPageState extends State<HistoryPage> {
         leading: Icon(Icons.analytics, color: Colors.blue.shade900),
         title: Text(
           DateFormat('MMM dd, yyyy - HH:mm').format(item.date),
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,16 +98,79 @@ class _HistoryPageState extends State<HistoryPage> {
                 style:
                     const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
             const SizedBox(height: 2),
-            Text(item.error ?? '',
-                style: const TextStyle(
-                  fontSize: 12,
-                )),
           ],
         ),
         trailing: IconButton(
           icon: const Icon(Icons.delete, color: Colors.red),
           onPressed: () => _confirmDelete(context, item.id),
         ),
+        onTap: () => _showAnalysisDetails(context, item),
+      ),
+    );
+  }
+
+  void _showAnalysisDetails(BuildContext context, HistoryItem item) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Analysis Details'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                DateFormat('MMM dd, yyyy - HH:mm').format(item.date),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              if (item.context != null) ...[
+                const Text('Context:',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const SizedBox(height: 4),
+                Text(item.context!),
+              ],
+              const SizedBox(height: 12),
+              if (item.food != null) ...[
+                const Text('Food:',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const SizedBox(height: 4),
+                Text(item.food!),
+              ],
+              const SizedBox(height: 12),
+              if (item.calories != null) ...[
+                const Text('Calories:',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const SizedBox(height: 4),
+                Text(item.calories?.toString() ?? 'N/A'),
+              ],
+              const SizedBox(height: 12),
+              if (item.recipeSummary != null) ...[
+                const Text('Recipe:',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const SizedBox(height: 4),
+                Text(item.recipeSummary!),
+              ],
+              const SizedBox(height: 12),
+              if (item.error != null && item.error!.isNotEmpty) ...[
+                const Text('Error:',
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const SizedBox(height: 4),
+                Text(item.error!),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Close'),
+            onPressed: () => Navigator.of(ctx).pop(),
+          ),
+        ],
       ),
     );
   }
