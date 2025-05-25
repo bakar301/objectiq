@@ -13,9 +13,9 @@ class HistoryItem {
     required this.date,
     this.context,
     this.summary,
-    this.error,
-    this.recipeSummary,
     this.food,
+    this.recipeSummary,
     this.calories,
+    this.error,
   });
 }

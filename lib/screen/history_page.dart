@@ -98,6 +98,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 style:
                     const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
             const SizedBox(height: 2),
+            Text(item.error ?? '', style: const TextStyle(fontSize: 12)),
           ],
         ),
         trailing: IconButton(
@@ -125,40 +126,44 @@ class _HistoryPageState extends State<HistoryPage> {
               const SizedBox(height: 12),
               if (item.context != null) ...[
                 const Text('Context:',
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Text(item.context!),
+                const SizedBox(height: 12),
               ],
-              const SizedBox(height: 12),
-              if (item.food != null) ...[
-                const Text('Food:',
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              if (item.summary != null) ...[
+                const Text('Summary:',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text(item.food!),
+                Text(item.summary!),
+                const SizedBox(height: 12),
               ],
-              const SizedBox(height: 12),
-              if (item.calories != null) ...[
-                const Text('Calories:',
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                const SizedBox(height: 4),
-                Text(item.calories?.toString() ?? 'N/A'),
+              if (item.calories != 0) ...[
+                if (item.food != null) ...[
+                  const Text('Food:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(item.food!),
+                  const SizedBox(height: 12),
+                ],
+                if (item.recipeSummary != null) ...[
+                  const Text('Recipe Summary:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(item.recipeSummary!),
+                  const SizedBox(height: 12),
+                ],
+                if (item.calories != null) ...[
+                  const Text('Calories:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text('${item.calories} kcal'),
+                  const SizedBox(height: 12),
+                ],
               ],
-              const SizedBox(height: 12),
-              if (item.recipeSummary != null) ...[
-                const Text('Recipe:',
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                const SizedBox(height: 4),
-                Text(item.recipeSummary!),
-              ],
-              const SizedBox(height: 12),
               if (item.error != null && item.error!.isNotEmpty) ...[
-                const Text('Error:',
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const Text('Error/Result:',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Text(item.error!),
               ],

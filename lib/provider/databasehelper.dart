@@ -14,7 +14,7 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     _db = await openDatabase(
       join(dbPath, 'history.db'),
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE history(
@@ -23,12 +23,20 @@ class DatabaseHelper {
             context TEXT,
             summary TEXT,
             food TEXT,
-            recipeSummary string,
-            calories numeric,
+            recipeSummary TEXT,
+            calories NUMERIC,
             error TEXT,
             date TEXT
           )
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('ALTER TABLE history ADD COLUMN food TEXT');
+          await db.execute('ALTER TABLE history ADD COLUMN recipeSummary TEXT');
+          await db.execute(
+              'ALTER TABLE history ADD COLUMN calories NUMERIC DEFAULT 0');
+        }
       },
     );
     return _db!;
@@ -40,6 +48,14 @@ class DatabaseHelper {
     final db = await database;
     final userId = _currentUserId;
     if (userId == null) throw Exception('User not logged in');
+
+    int? safeCalories;
+    if (item.calories is int) {
+      safeCalories = item.calories;
+    } else if (item.calories is String) {
+      safeCalories = int.tryParse(item.calories as String);
+    }
+
     await db.insert('history', {
       'id': item.id,
       'user_id': userId,
@@ -47,7 +63,7 @@ class DatabaseHelper {
       'summary': item.summary,
       'food': item.food,
       'recipeSummary': item.recipeSummary,
-      'calories': item.calories,
+      'calories': safeCalories,
       'error': item.error,
       'date': item.date.toIso8601String(),
     });

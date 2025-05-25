@@ -6,6 +6,7 @@ import 'package:objectiq/auth/login_page.dart';
 import 'package:objectiq/provider/history_provider.dart';
 import 'package:objectiq/provider/theme_provider.dart';
 import 'package:objectiq/screen/home_page.dart';
+import 'package:objectiq/screen/splash_page.dart';
 import 'package:provider/provider.dart';
 import 'package:camera/camera.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -49,7 +50,7 @@ class MyApp extends StatelessWidget {
             theme: ThemeData.light(),
             darkTheme: ThemeData.dark(),
             themeMode: themeProvider.themeMode,
-            home: currentUser != null ? HomePage() : LoginScreen(),
+            home: const SplashPage(),
           );
         },
       ),

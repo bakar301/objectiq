@@ -264,7 +264,8 @@ class _AnalyzePageState extends State<AnalyzePage> {
           context: _analysisResult?['context'] ?? "no context found",
           summary: _analysisResult?['summary'] ?? "no summary found",
           food: _analysisResult?['food'] ?? "",
-          calories: _analysisResult?['calories'] ?? "",
+          recipeSummary: _analysisResult?['recipeSummary'] ?? "",
+          calories: _analysisResult?['calories'] ?? 0,
           error: _analysisResult?['error'] ?? "",
         );
 
