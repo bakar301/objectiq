@@ -1,14 +1,13 @@
 // main.dart
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:objectiq/auth/login_page.dart';
 // import 'package:objectiq/provider/auth_provider.dart';
 import 'package:objectiq/provider/history_provider.dart';
 import 'package:objectiq/provider/theme_provider.dart';
-import 'package:objectiq/screen/home_page.dart';
 import 'package:objectiq/screen/splash_page.dart';
 import 'package:provider/provider.dart';
 import 'package:camera/camera.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'globals.dart';
 
@@ -28,23 +27,28 @@ Future<void> main() async {
   if (!kIsWeb) {
     cameras = await availableCameras();
   }
-  runApp(const MyApp());
+  final prefs = await SharedPreferences.getInstance();
+  final isDark = prefs.getBool('isDarkMode') ?? false;
+  runApp(MyApp(isDark: isDark));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isDark;
+  const MyApp({Key? key, required this.isDark}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = Supabase.instance.client.auth.currentUser;
+    //final currentUser = Supabase.instance.client.auth.currentUser;
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(
+          create: (_) => ThemeProvider(isDark),
+        ),
         // ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => HistoryProvider()),
       ],
       child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, _) {
+        builder: (__, themeProvider, ___) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             theme: ThemeData.light(),

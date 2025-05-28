@@ -4,7 +4,7 @@ import 'package:objectiq/screen/home_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SplashPage extends StatefulWidget {
-  const SplashPage({Key? key}) : super(key: key);
+  const SplashPage({super.key});
 
   @override
   State<SplashPage> createState() => _SplashPageState();
@@ -32,12 +32,16 @@ class _SplashPageState extends State<SplashPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 255, 255, 255),
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Your logo or app name
-            FlutterLogo(size: 100),
+            Image.asset(
+              'assets/icon/app_icon.png',
+              width: 100,
+              height: 100,
+            ),
             const SizedBox(height: 24),
             const Text(
               'ObjectIQ',
